@@ -28,22 +28,26 @@ public class player : MonoBehaviour
 
     void move() {
 
-        if (Input.GetKey(KeyCode.W)) {
+        if (controler.isGrounded) {
 
-            moveDirection = Vector3.forward * speed;
-            moveDirection = transform.TransformDirection(moveDirection);
+            if (Input.GetKey(KeyCode.W)) {
+
+                moveDirection = Vector3.forward * speed;
+                moveDirection = transform.TransformDirection(moveDirection);
+            }
+
+
+            if (Input.GetKeyUp(KeyCode.W)) {
+                moveDirection = Vector3.zero;
+            }
         }
 
-
-        if (Input.GetKeyUp(KeyCode.W)) {
-            moveDirection = Vector3.zero;
-        }
 
 
         rotation += Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime;
         transform.eulerAngles = new Vector3(0, rotation, 0);
 
-        moveDirection.y = gravity * Time.deltaTime;
+        moveDirection.y -= gravity * Time.deltaTime;
         controler.Move(moveDirection * Time.deltaTime) ;
     }
 
