@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class player : MonoBehaviour {
     public float speed;
@@ -8,22 +9,30 @@ public class player : MonoBehaviour {
     private float rotation;
     public float gravity;
 
+    public float TotalHealt = 100;
+    public float CurrentHealt;
+
     Vector3 moveDirection;
 
     CharacterController controler;
     Animator anim;
 
     public bool isReady;
-
+    public bool isAlive;
     public float enemyDamage = 25f;
 
     //armazena todos os inimigos que tomar hit na lista
     List<Transform> Enemies = new List<Transform>();
     public float coliderRadius;
     // Start is called before the first frame update
+
+
     void Start() {
         controler = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+
+        CurrentHealt = TotalHealt;
+        isAlive = true;
     }
 
     // Update is called once per frame
@@ -53,20 +62,20 @@ public class player : MonoBehaviour {
                 }
 
             }
-           /* else  {
+            else  {
                 anim.SetBool("walking", false);
                 anim.SetInteger("transition", 0);
                 moveDirection = Vector3.zero;
                // StartCoroutine(Attack(1));
-            }*/
+            }
 
 
-             if (Input.GetKeyUp(KeyCode.W)) {
+            /* if (Input.GetKeyUp(KeyCode.W)) {
 
                  anim.SetBool("walking", false);
                  anim.SetInteger("transition", 0);
                  moveDirection = Vector3.zero;
-             }
+             }*/
         }
 
 
@@ -151,5 +160,34 @@ public class player : MonoBehaviour {
         Gizmos.color = Color.yellow;    
         Gizmos.DrawSphere(transform.position + transform.forward , coliderRadius);        
     }
+
+
+    public void GetHit(float damage) {
+
+        CurrentHealt -= damage;
+
+        if (CurrentHealt > 0) {
+
+            //toma hit
+            Debug.Log("tomou hit");
+            anim.SetInteger("transition", 3);
+            StartCoroutine(RecoveryFromHit());
+
+        }
+        else {
+            //morre
+            anim.SetInteger("transition", 4);
+            isAlive = false;
+            
+        }
+
+    }
+
+    IEnumerator RecoveryFromHit() {
+
+        yield return new WaitForSeconds(1.1f);
+        anim.SetInteger("transition", 0);
+    }
+
 
 }

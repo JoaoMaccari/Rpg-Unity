@@ -22,6 +22,9 @@ public class Enemy : MonoBehaviour
     private NavMeshAgent agent;
 
     public bool isReady;
+    public bool playerIsAlive;
+
+    public float coliderRadius;
 
     private void Start() {
         cap = GetComponent<CapsuleCollider>();
@@ -29,45 +32,55 @@ public class Enemy : MonoBehaviour
         CurrentHealt = TotalHealt;
 
         agent = GetComponent<NavMeshAgent>();
+        playerIsAlive = true;
        
     }
 
     public void Update() {
-       
-        float distance = Vector3.Distance(transform.position, target.position);
 
-        if (distance <= lookRadius) {
+        if (CurrentHealt > 0) {
 
-           // agent.isStopped = true;
-            //se nao estiver atacando, anda
-            if (!anim.GetBool("attacking")) {
 
-                agent.SetDestination(target.position);//set desination faz ir em direção ao target
-                anim.SetInteger("transition", 2);
-                anim.SetBool("walking", true);
+
+            float distance = Vector3.Distance(transform.position, target.position);
+
+            if (distance <= lookRadius) {
+
+                // agent.isStopped = true;
+                //se nao estiver atacando, anda
+                if (!anim.GetBool("attacking")) {
+
+                    agent.SetDestination(target.position);//set desination faz ir em direção ao target
+                    anim.SetInteger("transition", 2);
+                    anim.SetBool("walking", true);
+                }
+
+
+
+                if (distance <= agent.stoppingDistance) {// a stopDistance é setada no nav mesh agent
+                    StartCoroutine(Attack());
+                    lookTarget();
+                }
+
+                if (distance >= agent.stoppingDistance) {
+                    anim.SetBool("attacking", false);
+                }
+
+
             }
+            else {
 
-
-
-            if (distance <= agent.stoppingDistance) {// a stopDistance é setada no nav mesh agent
-                StartCoroutine(Attack());
-                lookTarget();
+                anim.SetInteger("transition", 0);
+                anim.SetBool("walking", false);
+                anim.SetBool("attacking", false);
+                //agent.isStopped = false;
             }
-
-
-        }
-        else {
-
-            anim.SetInteger("transition", 0);
-            anim.SetBool("walking", false);
-            anim.SetBool("attacking", false);
-            //agent.isStopped = false;
         }
     }
 
     IEnumerator Attack() {
 
-        if (!isReady) {
+        if (!isReady && playerIsAlive) {
 
             isReady = true;
             anim.SetBool("attacking", true);
@@ -75,9 +88,29 @@ public class Enemy : MonoBehaviour
             anim.SetInteger("transition", 1);
             yield return new WaitForSeconds(1f);
 
-            
+            GetEnemy();
+            yield return new WaitForSeconds(1.7f);
             isReady = false;
 
+        }
+
+        if (!playerIsAlive) {
+            anim.SetInteger("transition", 0);
+            anim.SetBool("walking", false);
+            anim.SetBool("attacking", false);
+            //agent.isStopped = false;
+        }
+    }
+
+    void GetEnemy() {
+
+        foreach (Collider c in Physics.OverlapSphere((transform.position + transform.forward * coliderRadius), coliderRadius)) {
+            if (c.gameObject.CompareTag("Player")) {
+                Debug.Log("atacou o player");
+
+                c.gameObject.GetComponent<player>().GetHit(25f);
+                playerIsAlive = c.gameObject.GetComponent<player>().isAlive ;
+            }
         }
     }
 
@@ -106,7 +139,8 @@ public class Enemy : MonoBehaviour
 
         }
         else {
-            Die();
+            anim.SetInteger("transition", 4);
+            cap.enabled = false;
         }
         
     }
@@ -118,16 +152,7 @@ public class Enemy : MonoBehaviour
     } 
 
 
-    void Die() {
 
-        if (CurrentHealt <= 0) {
-
-            anim.SetInteger("transition", 4);
-            cap.enabled = false;
-        }
-
-        
-    }
 
     
    
