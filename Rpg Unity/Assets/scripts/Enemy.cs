@@ -58,7 +58,7 @@ public class Enemy : MonoBehaviour
 
 
                 if (distance <= agent.stoppingDistance) {// a stopDistance é setada no nav mesh agent
-                    StartCoroutine(Attack());
+                    StartCoroutine("Attack");
                     lookTarget();
                 }
 
@@ -80,7 +80,7 @@ public class Enemy : MonoBehaviour
 
     IEnumerator Attack() {
 
-        if (!isReady && playerIsAlive) {
+        if (!isReady && playerIsAlive && !anim.GetBool("hiting")) {
 
             isReady = true;
             anim.SetBool("attacking", true);
@@ -133,8 +133,11 @@ public class Enemy : MonoBehaviour
         CurrentHealt -= damage;
 
         if (CurrentHealt > 0) {
+
+            StopCoroutine("Attack");
             Debug.Log("tomou hit");
             anim.SetInteger("transition", 3);
+            anim.SetBool("hiting", true);
             StartCoroutine(RecoveryFromHit());
 
         }
@@ -149,6 +152,8 @@ public class Enemy : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
         anim.SetInteger("transition", 0);
+        anim.SetBool("hiting", false);
+        isReady = false;
     } 
 
 

@@ -44,7 +44,7 @@ public class player : MonoBehaviour {
     void move() {
 
         if (controler.isGrounded) {
-            //Debug.Log("tocou o chao");
+           // Debug.Log("tocou o chao");
             if (Input.GetKey(KeyCode.W)) {
 
                 if (!anim.GetBool("attacking")) {
@@ -58,7 +58,7 @@ public class player : MonoBehaviour {
                     anim.SetBool("walking", false);
 
                     moveDirection = Vector3.zero;
-                    StartCoroutine(Attack(1));
+                    //StartCoroutine(Attack(1));
                 }
 
             }
@@ -100,15 +100,15 @@ public class player : MonoBehaviour {
                 }
 
                 if (!anim.GetBool("walking")) {
-                    StartCoroutine(Attack(0));
+                    StartCoroutine("Attack");
                 }
             }
         }
     }
 
-    IEnumerator Attack(int transitionValue) {
+    IEnumerator Attack() {
 
-        if (!isReady) {
+        if (!isReady && !anim.GetBool("hiting")) {
 
             isReady = true;
             anim.SetBool("attacking", true);
@@ -136,7 +136,7 @@ public class player : MonoBehaviour {
 
             yield return new WaitForSeconds(1.3f);
 
-            anim.SetInteger("transition", transitionValue);
+            anim.SetInteger("transition",0);
             anim.SetBool("attacking", false);
             isReady = false;
 
@@ -169,8 +169,11 @@ public class player : MonoBehaviour {
         if (CurrentHealt > 0) {
 
             //toma hit
+
             Debug.Log("tomou hit");
+            StopCoroutine("Attack");
             anim.SetInteger("transition", 3);
+            anim.SetBool("hiting", true);
             StartCoroutine(RecoveryFromHit());
 
         }
@@ -187,6 +190,8 @@ public class player : MonoBehaviour {
 
         yield return new WaitForSeconds(1.1f);
         anim.SetInteger("transition", 0);
+        anim.SetBool("hiting", false);
+        isReady = false;
     }
 
 
